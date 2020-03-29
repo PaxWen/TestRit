@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TestRit</string>
+    <string name="meterKM">Км\\ч</string>
+    <string name="meterPath">Метр.</string>
+    <string name="meterText">000</string>
+    <string name="avgText">Средняя скорость:</string>
+    <string name="pathText">Путь:</string>
+</resources>
