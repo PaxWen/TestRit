@@ -84,8 +84,10 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
             }
 
         };
-        rotate = false;
-        analogSpeedometr = false;
+            rotate = false;
+            analogSpeedometr = false;
+
+
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},GPS_REQuEST);
 
         updateSpeed(null);
@@ -200,7 +202,21 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         pathMeterTV.setText(String.valueOf((int)allPath));
 
     }
-
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        rotate = savedInstanceState.getBoolean("rotate");
+        if (rotate) {
+            hudOn();
+        } else {
+            hudOff();
+        }
+        analogSpeedometr = savedInstanceState.getBoolean("analogSpeedometr");
+        if(analogSpeedometr){
+            setAnalogSpeedometr();
+        }else{
+            setNumeralSpeedometr();
+        }
+    }
     @SuppressLint("MissingPermission")
     private void gpsTrecing() {
         if(locationManager != null){
@@ -224,11 +240,19 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     }
 
     @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("analogSpeedometr", analogSpeedometr);
+        outState.putBoolean("rotate", rotate);
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-    updateSpeed(null);
         if (requestCode== GPS_REQuEST){
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                    gpsTrecing();
+                }else{
+                    Toast.makeText(this,getString(R.string.gpsOffText),Toast.LENGTH_LONG).show();
                 }
         }
     }

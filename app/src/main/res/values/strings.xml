@@ -5,4 +5,5 @@
     <string name="meterText">000</string>
     <string name="avgText">Средняя скорость:</string>
     <string name="pathText">Путь:</string>
+    <string name="gpsOffText">Включите GPS</string>
 </resources>

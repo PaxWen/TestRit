@@ -47,7 +47,6 @@ public class SpeedometerDrawlerView extends View {
         mPaint = new Paint();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(colorMain);
-        mPaint.setShadowLayer(10,5,5,colorShadowCircle);
         mPaint.setStrokeWidth(10);
 
         arrowPaint = new Paint();
@@ -60,7 +59,6 @@ public class SpeedometerDrawlerView extends View {
         textPaint.setColor(textColor);
         textPaint.setTextSize(textSize);
         textPaint.setStrokeWidth(2.0f);
-        textPaint.setShadowLayer(5,2,2,colorShadowText);
         textPaint.setStyle(Paint.Style.FILL);
 
         path = new Path();
