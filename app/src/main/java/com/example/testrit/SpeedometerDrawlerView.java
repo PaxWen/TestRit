@@ -22,6 +22,7 @@ public class SpeedometerDrawlerView extends View {
     int textColor;
     int maxSpeed;
     int textSize;
+    int line_size;
 
     float currentSpeed;
     private Paint mPaint;
@@ -39,6 +40,7 @@ public class SpeedometerDrawlerView extends View {
         colorShadowCircle = typedArray.getColor(R.styleable.SpeedometerDrawlerView_spd_main_shadow_color, Color.GREEN);
         maxSpeed = typedArray.getColor(R.styleable.SpeedometerDrawlerView_spd_max_speed, 200);
         textSize = typedArray.getInt(R.styleable.SpeedometerDrawlerView_spd_text_size, 35);
+        line_size = typedArray.getInt(R.styleable.SpeedometerDrawlerView_spd_line_size, 10);
         currentSpeed = 0;
         init();
         typedArray.recycle();
@@ -47,12 +49,12 @@ public class SpeedometerDrawlerView extends View {
         mPaint = new Paint();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(colorMain);
-        mPaint.setStrokeWidth(10);
+        mPaint.setStrokeWidth(line_size);
 
         arrowPaint = new Paint();
         arrowPaint.setColor(colorArrow);
         arrowPaint.setStyle(Paint.Style.FILL);
-        arrowPaint.setStrokeWidth(10);
+        arrowPaint.setStrokeWidth(line_size);
 
         textPaint = new Paint();
         textPaint.setAntiAlias(true);

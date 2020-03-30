@@ -8,5 +8,6 @@
         <attr name="spd_main_shadow_color" format="color"/>
         <attr name="spd_max_speed" format="integer"/>
         <attr name="spd_text_size" format="integer"/>
+        <attr name="spd_line_size" format="integer"/>
     </declare-styleable>
 </resources>
