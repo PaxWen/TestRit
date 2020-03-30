@@ -14,8 +14,10 @@ import java.util.List;
 import java.util.Locale;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     @BindView(R.id.pathLinearLayout)LinearLayout pathLinearLayout;
     @BindView(R.id.speedometrView)SpeedometerDrawlerView speedometerDrawlerView;
     @BindView(R.id.hudSwitchImageButton) ImageButton hudSwitchImageButton;
+    @BindView(R.id.clearAvgSpeed) ImageButton clearAvgSpeedImageButton;
+    @BindView(R.id.clearPath) ImageButton clearPathImageButton;
     @BindView(R.id.speedometrSwitchImageButton) ImageButton speedometrSwitchImageButton;
     LocationManager locationManager;
     CustomLocation previousLocation;
@@ -50,13 +54,15 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     boolean analogSpeedometr;
     List<Float> speedList;
     float allPath;
+    SpeedDatabaseHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        speedList = new ArrayList<>();
-        allPath = 0;
+        dbHelper = new SpeedDatabaseHelper(this);
+        speedList = loadSpeedList();
+        allPath = loadLastPath();
         locationManager = (LocationManager) this
                 .getSystemService(Context.LOCATION_SERVICE);
 
@@ -66,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
                 CustomLocation CLocation = new CustomLocation(location,true);
                 updateSpeed(CLocation);
-                Log.v("tag2",String.format("%s", location.getSpeed()));
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -85,32 +90,59 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
         updateSpeed(null);
 
-        hudSwitchImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(rotate){
-                    hudOff();
-                    rotate = false;
-                }else {
-                    hudOn();
-                    rotate = true;
-                }
+        hudSwitchImageButton.setOnClickListener(v -> {
+            if(rotate){
+                hudOff();
+                rotate = false;
+            }else {
+                hudOn();
+                rotate = true;
             }
         });
 
-        speedometrSwitchImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(analogSpeedometr){
-                    setNumeralSpeedometr();
-                    analogSpeedometr = false;
-                }else {
-                    setAnalogSpeedometr();
-                    analogSpeedometr = true;
-                }
+        speedometrSwitchImageButton.setOnClickListener(v -> {
+            if(analogSpeedometr){
+                setNumeralSpeedometr();
+                analogSpeedometr = false;
+            }else {
+                setAnalogSpeedometr();
+                analogSpeedometr = true;
             }
         });
+        clearPathImageButton.setOnClickListener(v -> clearPath());
+        clearAvgSpeedImageButton.setOnClickListener(v -> clearAvgSpeed());
+    }
+    private void clearPath(){
+        allPath =0;
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        dbHelper.newPath(db);
+        dbHelper.close();
+    }
+    private void clearAvgSpeed(){
+        speedList.clear();
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        dbHelper.ClearSpeedTable(db);
+        dbHelper.close();
+    }
+    private void saveData(List<Float> floatList,float allPath){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        dbHelper.ClearSpeedTable(db);
+        dbHelper.insertSpeedData(db,floatList);
+        dbHelper.updatePathData(db,allPath);
+        dbHelper.close();
+    }
 
+    private List<Float> loadSpeedList(){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        List<Float> list = dbHelper.getSpeedList(db);
+        dbHelper.close();
+        return list;
+    }
+    private float loadLastPath(){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        float path = dbHelper.getLastPath(db);
+        dbHelper.close();
+        return path;
     }
 
     private void setAnalogSpeedometr(){
@@ -141,23 +173,24 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     private void updateSpeed(CustomLocation location) {
 
         float nCurrentSpeed = 0;
-        float path = 0;
+        float path ;
         if(location != null)
         {
             location.setUseMetricUnits(useMetricUnits());
             nCurrentSpeed = location.getSpeed();
             if (previousLocation!=null){
                 path = location.distanceTo(previousLocation);
-                Log.v("tagPath",path+"");
                 allPath+=path;
             }
             previousLocation = location;
         }
 
-
         String strCurrentSpeed = String.valueOf((int)nCurrentSpeed);
-        //strCurrentSpeed = strCurrentSpeed.replace(' ', '0');
         speedList.add(nCurrentSpeed);
+        if(speedList.size()==900){
+            speedList.remove(0);
+        }
+
         if (analogSpeedometr){
             speedometerDrawlerView.setSpeed(nCurrentSpeed);
         }else{
@@ -184,14 +217,19 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        saveData(speedList,allPath);
+
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     updateSpeed(null);
-        switch(requestCode) {
-            case GPS_REQuEST:
+        if (requestCode== GPS_REQuEST){
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                    gpsTrecing();
                 }
-                break;
         }
     }
 
@@ -203,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
     @Override
     public void onLocationChanged(Location location) {
-        // TODO Auto-generated method stub
         if(location != null)
         {
             CustomLocation myLocation = new CustomLocation(location, useMetricUnits());
@@ -213,25 +250,17 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
     @Override
     public void onProviderDisabled(String provider) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void onGpsStatusChanged(int event) {
-        // TODO Auto-generated method stub
-
     }
 }
