@@ -71,4 +71,9 @@ public class CustomLocation extends Location {
         }
         return nSpeed;
     }
+
+    @Override
+    public long getTime() {
+        return super.getTime();
+    }
 }

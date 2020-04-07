@@ -77,8 +77,14 @@ public class SpeedometerDrawlerView extends View {
 
         //mPaint.setAntiAlias(true);
         float width, height, centerX, centerY, radius,xArrow,yArrow,angleArrow,startAngle,sweepAngle;
-        width = getWidth()-10;
-        height = getHeight()-10;
+        if(getWidth()>getHeight()){
+            width = getWidth()-10;
+            height = getWidth()-10;
+        }else{
+            width = getHeight()-10;
+            height = getHeight()-10;
+        }
+
         centerX = (width+10) / 2;
         centerY = (height+10) / 2;
         radius = width-centerX;

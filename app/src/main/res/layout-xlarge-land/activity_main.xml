@@ -93,6 +93,8 @@
                 android:id="@+id/clearAvgSpeed"
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
                 app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
                 tools:ignore="ContentDescription" />
         </LinearLayout>
@@ -153,6 +155,8 @@
                 android:id="@+id/clearPath"
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
                 app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
                 tools:ignore="ContentDescription" />
         </LinearLayout>

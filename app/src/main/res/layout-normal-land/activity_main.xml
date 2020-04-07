@@ -13,11 +13,13 @@
         android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
         android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.94"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.19">
 
         <LinearLayout
             android:id="@+id/speedLinearLayout"
@@ -49,10 +51,10 @@
         <com.example.testrit.SpeedometerDrawlerView
             android:id="@+id/speedometrView"
             android:layout_width="300dp"
-            android:layout_height="233dp"
+            android:layout_height="300dp"
             android:layout_gravity="center"
             android:layout_marginTop="12dp"
-            android:visibility="visible"
+            android:visibility="gone"
             app:spd_arrow_color="#E8D30F0F"
             app:spd_main_color="#142CEC"
             app:spd_max_speed="200"
@@ -67,12 +69,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="100dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="wrap_content"

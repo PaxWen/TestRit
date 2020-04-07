@@ -6,6 +6,7 @@ import androidx.constraintlayout.solver.widgets.ConstraintWidgetContainer;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,6 +17,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
@@ -30,12 +32,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements ICustomGPSListener {
     public static final int GPS_REQuEST = 125;
-
+    private static final String PREFERENCE_NAME_FILE = "preference_user";
+    private static final String PREFERENCE_SPEED_LIST = "preference_speed_list";
+    private static final String PREFERENCE_SPEED_LIST_TIME = "preference_speed_list_TIME";
     @BindView(R.id.SpeedTextView) TextView speedMeterTV;
     @BindView(R.id.avgTextView) TextView avgSpeedMeterTV;
     @BindView(R.id.pathTextView) TextView pathMeterTV;
@@ -53,7 +60,9 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     boolean rotate;
     boolean analogSpeedometr;
     List<Float> speedList;
-    float allPath;
+    List<Long> speedListTime;
+    int avgSpeed;
+    double allPath;
     SpeedDatabaseHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +70,7 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         dbHelper = new SpeedDatabaseHelper(this);
-        speedList = loadSpeedList();
-        allPath = loadLastPath();
+        loadSaveData();
         locationManager = (LocationManager) this
                 .getSystemService(Context.LOCATION_SERVICE);
 
@@ -84,9 +92,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
             }
 
         };
-            rotate = false;
-            analogSpeedometr = false;
-
 
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},GPS_REQuEST);
 
@@ -116,36 +121,48 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     }
     private void clearPath(){
         allPath =0;
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        dbHelper.newPath(db);
-        dbHelper.close();
     }
     private void clearAvgSpeed(){
         speedList.clear();
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        dbHelper.ClearSpeedTable(db);
-        dbHelper.close();
+        speedListTime.clear();
     }
-    private void saveData(List<Float> floatList,float allPath){
+    public double sumSpeed(List<Float> speedList){
+        double sum=0;
+        for(float f:speedList){
+            sum+= f;
+        }
+        return sum;
+    }
+    private void saveData(List<Float> floatList,double allPath){
+        SaveDataFromDB saveDataFromDB = new SaveDataFromDB(sumSpeed(floatList),floatList.size(),allPath,rotate,analogSpeedometr);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        dbHelper.ClearSpeedTable(db);
-        dbHelper.insertSpeedData(db,floatList);
-        dbHelper.updatePathData(db,allPath);
+        dbHelper.saveSpeedData(db,saveDataFromDB);
         dbHelper.close();
+        saveSpeedList();
     }
 
-    private List<Float> loadSpeedList(){
+    private void loadSaveData(){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        List<Float> list = dbHelper.getSpeedList(db);
+        SaveDataFromDB saveData = dbHelper.getSaveData(db);
         dbHelper.close();
-        return list;
+        avgSpeed =  (int)(saveData.getPath()/saveData.getCountSpeed());
+        allPath = saveData.getPath();
+        rotate = saveData.isRotate();
+        analogSpeedometr = saveData.isSpdType();
+        if (rotate) {
+            hudOn();
+        } else {
+            hudOff();
+        }
+        if(analogSpeedometr){
+            setAnalogSpeedometr();
+        }else{
+            setNumeralSpeedometr();
+        }
+        loadSpeedList();
+        Log.v("tag","ListSpeed="+speedList.size()+" : ListTime"+speedListTime.size());
     }
-    private float loadLastPath(){
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        float path = dbHelper.getLastPath(db);
-        dbHelper.close();
-        return path;
-    }
+
 
     private void setAnalogSpeedometr(){
         speedLinearLayout.setVisibility(View.GONE);
@@ -158,18 +175,18 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         speedometrSwitchImageButton.setImageResource(R.drawable.an_icon_speedometr);
     }
     private void hudOn(){
-        speedLinearLayout.setRotationY(180);
-        speedometerDrawlerView.setRotationY(180);
-        pathLinearLayout.setRotationY(180);
-        avgSpeedLinearLayout.setRotationY(180);
+        speedLinearLayout.setRotationX(180);
+        speedometerDrawlerView.setRotationX(180);
+        pathLinearLayout.setRotationX(180);
+        avgSpeedLinearLayout.setRotationX(180);
         hudSwitchImageButton.setImageResource(R.drawable.hud_off);
 
     }
     private void hudOff(){
-        speedLinearLayout.setRotationY(0);
-        speedometerDrawlerView.setRotationY(0);
-        pathLinearLayout.setRotationY(0);
-        avgSpeedLinearLayout.setRotationY(0);
+        speedLinearLayout.setRotationX(0);
+        speedometerDrawlerView.setRotationX(0);
+        pathLinearLayout.setRotationX(0);
+        avgSpeedLinearLayout.setRotationX(0);
         hudSwitchImageButton.setImageResource(R.drawable.hud_on);
     }
     private void updateSpeed(CustomLocation location) {
@@ -189,32 +206,59 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
         String strCurrentSpeed = String.valueOf((int)nCurrentSpeed);
         speedList.add(nCurrentSpeed);
-        if(speedList.size()==900){
-            speedList.remove(0);
-        }
+        speedListTime.add(System.currentTimeMillis());
+        cleatListSpeed(System.currentTimeMillis());
 
         if (analogSpeedometr){
             speedometerDrawlerView.setSpeed(nCurrentSpeed);
         }else{
             speedMeterTV.setText(strCurrentSpeed);
         }
-        avgSpeedMeterTV.setText(String.valueOf((int)avgSpeed()));
-        pathMeterTV.setText(String.valueOf((int)allPath));
+        avgSpeed = getAvgSpeed();
+        avgSpeedMeterTV.setText(String.valueOf(avgSpeed));
+        pathMeterTV.setText(String.format(Locale.getDefault(),"%.2f",allPath/1000));
 
+    }
+    private void cleatListSpeed(long time){
+        while (speedListTime.size()!=0){
+            if(speedListTime.get(0)+(1000*60*10)<time){
+                speedListTime.remove(0);
+                speedList.remove(0);
+            }else {
+                return;
+            }
+        }
     }
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        rotate = savedInstanceState.getBoolean("rotate");
-        if (rotate) {
-            hudOn();
-        } else {
-            hudOff();
+        loadSaveData();
+
+    }
+    public void saveSpeedList(){
+        SharedPreferences prefs = getSharedPreferences(PREFERENCE_NAME_FILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(speedList);
+        editor.putString(PREFERENCE_SPEED_LIST, json);
+        json = gson.toJson(speedListTime);
+        editor.putString(PREFERENCE_SPEED_LIST_TIME, json);
+        editor.apply();
+    }
+
+    private void loadSpeedList(){
+        SharedPreferences sPref =  getSharedPreferences(PREFERENCE_NAME_FILE,MODE_PRIVATE);
+        String savedText = sPref.getString(PREFERENCE_SPEED_LIST,"null");
+        Type type = new TypeToken<List<Float>>() {}.getType();
+        Gson gson = new Gson();
+        speedList = gson.fromJson(savedText, type);
+        if (speedList == null){
+            speedList =  new ArrayList<>();
         }
-        analogSpeedometr = savedInstanceState.getBoolean("analogSpeedometr");
-        if(analogSpeedometr){
-            setAnalogSpeedometr();
-        }else{
-            setNumeralSpeedometr();
+        savedText = sPref.getString(PREFERENCE_SPEED_LIST_TIME,"null");
+        type = new TypeToken<List<Long>>() {}.getType();
+        speedListTime = gson.fromJson(savedText, type);
+        if (speedListTime == null){
+            speedListTime =  new ArrayList<>();
         }
     }
     @SuppressLint("MissingPermission")
@@ -224,26 +268,24 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         }
     }
 
-    private float avgSpeed(){
+    private int getAvgSpeed(){
         float sumSpeed=0;
         for (float f:speedList){
             sumSpeed+=f;
         }
-        return speedList.size()<900?sumSpeed/speedList.size():sumSpeed/900;
+        return (int)(sumSpeed/speedList.size());
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         saveData(speedList,allPath);
-
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("analogSpeedometr", analogSpeedometr);
-        outState.putBoolean("rotate", rotate);
+        saveData(speedList,allPath);
     }
 
     @Override

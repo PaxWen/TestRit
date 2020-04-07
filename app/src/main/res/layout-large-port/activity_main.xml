@@ -48,8 +48,8 @@
 
         <com.example.testrit.SpeedometerDrawlerView
             android:id="@+id/speedometrView"
-            android:layout_width="360dp"
-            android:layout_height="360dp"
+            android:layout_width="393dp"
+            android:layout_height="307dp"
             android:layout_gravity="center"
             android:layout_marginTop="12dp"
             android:visibility="gone"
@@ -58,7 +58,7 @@
             app:spd_max_speed="200"
             app:spd_text_color="#15C827"
             app:spd_text_shadow_color="#08CD3A"
-            app:spd_text_size="25" />
+            app:spd_text_size="50" />
 
     </LinearLayout>
 
@@ -91,6 +91,8 @@
                 android:id="@+id/clearAvgSpeed"
                 android:layout_width="30dp"
                 android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
                 app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
                 tools:ignore="ContentDescription" />
         </LinearLayout>
@@ -151,6 +153,8 @@
                 android:id="@+id/clearPath"
                 android:layout_width="30dp"
                 android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
                 app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
                 tools:ignore="ContentDescription" />
         </LinearLayout>

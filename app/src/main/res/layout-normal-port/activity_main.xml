@@ -49,10 +49,10 @@
         <com.example.testrit.SpeedometerDrawlerView
             android:id="@+id/speedometrView"
             android:layout_width="300dp"
-            android:layout_height="233dp"
+            android:layout_height="232dp"
             android:layout_gravity="center"
             android:layout_marginTop="12dp"
-            android:visibility="visible"
+            android:visibility="gone"
             app:spd_arrow_color="#E8D30F0F"
             app:spd_main_color="#142CEC"
             app:spd_max_speed="200"
