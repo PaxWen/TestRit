@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
             public void onLocationChanged(Location location) {
 
-                CustomLocation CLocation = new CustomLocation(location,true);
+                CustomLocation CLocation = new CustomLocation(location);
                 updateSpeed(CLocation);
             }
 
@@ -196,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         float path ;
         if(location != null)
         {
-            location.setUseMetricUnits(useMetricUnits());
             nCurrentSpeed = location.getSpeed();
             if (previousLocation!=null){
                 path = location.distanceTo(previousLocation);
@@ -217,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         }
         avgSpeed = getAvgSpeed();
         avgSpeedMeterTV.setText(String.valueOf(avgSpeed));
-        
+
         if(allPath>1000 ){
             if(pathStringTextView.getText() != getString(R.string.kMeterPath)){
                 pathStringTextView.setText(getString(R.string.kMeterPath));
@@ -313,16 +312,13 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     }
 
 
-    private boolean useMetricUnits() {
 
-        return true;
-    }
 
     @Override
     public void onLocationChanged(Location location) {
         if(location != null)
         {
-            CustomLocation myLocation = new CustomLocation(location, useMetricUnits());
+            CustomLocation myLocation = new CustomLocation(location);
             this.updateSpeed(myLocation);
         }
     }
