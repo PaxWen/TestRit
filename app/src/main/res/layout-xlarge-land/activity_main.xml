@@ -177,6 +177,7 @@
                 android:textSize="90sp" />
 
             <TextView
+                android:id="@+id/pathStringTextView"
                 style="@style/NeonText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

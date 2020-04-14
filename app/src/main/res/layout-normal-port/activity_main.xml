@@ -173,13 +173,14 @@
                 android:textSize="50sp" />
 
             <TextView
+                android:id="@+id/pathStringTextView"
                 style="@style/NeonText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:layout_weight="1"
-                android:text="@string/kMeterPath"
+                android:text="@string/meterPath"
                 android:textSize="30sp" />
         </LinearLayout>
     </LinearLayout>

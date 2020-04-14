@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     @BindView(R.id.SpeedTextView) TextView speedMeterTV;
     @BindView(R.id.avgTextView) TextView avgSpeedMeterTV;
     @BindView(R.id.pathTextView) TextView pathMeterTV;
+    @BindView(R.id.pathStringTextView) TextView pathStringTextView;
     @BindView(R.id.speedLinearLayout) LinearLayout speedLinearLayout;
     @BindView(R.id.avgLinearLayout)LinearLayout avgSpeedLinearLayout;
     @BindView(R.id.pathLinearLayout)LinearLayout pathLinearLayout;
@@ -216,7 +217,19 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         }
         avgSpeed = getAvgSpeed();
         avgSpeedMeterTV.setText(String.valueOf(avgSpeed));
-        pathMeterTV.setText(String.format(Locale.getDefault(),"%.2f",allPath/1000));
+        
+        if(allPath>1000 ){
+            if(pathStringTextView.getText() != getString(R.string.kMeterPath)){
+                pathStringTextView.setText(getString(R.string.kMeterPath));
+            }
+            pathMeterTV.setText(String.format(Locale.getDefault(),"%.2f",allPath/1000));
+        }else{
+            if(pathStringTextView.getText() != getString(R.string.meterPath)){
+                pathStringTextView.setText(getString(R.string.meterPath));
+            }
+            pathMeterTV.setText(String.format(Locale.getDefault(),"%.0f",allPath));
+        }
+
 
     }
     private void cleatListSpeed(long time){
