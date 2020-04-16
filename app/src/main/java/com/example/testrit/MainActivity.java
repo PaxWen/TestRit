@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
     boolean analogSpeedometr;
     List<Float> speedList;
     List<Long> speedListTime;
+    double sumSpeedFromDB;
+    int countSpeedFromDB;
     int avgSpeed;
     double allPath;
     SpeedDatabaseHelper dbHelper;
@@ -72,6 +74,10 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         ButterKnife.bind(this);
         dbHelper = new SpeedDatabaseHelper(this);
         loadSaveData();
+        speedList =  new ArrayList<>();
+        speedListTime = new ArrayList<>();
+        sumSpeedFromDB = 0;
+        countSpeedFromDB = 0;
         locationManager = (LocationManager) this
                 .getSystemService(Context.LOCATION_SERVICE);
 
@@ -139,14 +145,15 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         dbHelper.saveSpeedData(db,saveDataFromDB);
         dbHelper.close();
-        saveSpeedList();
     }
 
     private void loadSaveData(){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         SaveDataFromDB saveData = dbHelper.getSaveData(db);
         dbHelper.close();
-        avgSpeed =  (int)(saveData.getPath()/saveData.getCountSpeed());
+        sumSpeedFromDB = saveData.getSpeed();
+        countSpeedFromDB = saveData.getCountSpeed();
+        avgSpeed =  (int)(sumSpeedFromDB/countSpeedFromDB);
         allPath = saveData.getPath();
         rotate = saveData.isRotate();
         analogSpeedometr = saveData.isSpdType();
@@ -160,8 +167,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         }else{
             setNumeralSpeedometr();
         }
-        loadSpeedList();
-        Log.v("tag","ListSpeed="+speedList.size()+" : ListTime"+speedListTime.size());
     }
 
 
@@ -246,33 +251,7 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         loadSaveData();
 
     }
-    public void saveSpeedList(){
-        SharedPreferences prefs = getSharedPreferences(PREFERENCE_NAME_FILE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(speedList);
-        editor.putString(PREFERENCE_SPEED_LIST, json);
-        json = gson.toJson(speedListTime);
-        editor.putString(PREFERENCE_SPEED_LIST_TIME, json);
-        editor.apply();
-    }
 
-    private void loadSpeedList(){
-        SharedPreferences sPref =  getSharedPreferences(PREFERENCE_NAME_FILE,MODE_PRIVATE);
-        String savedText = sPref.getString(PREFERENCE_SPEED_LIST,"null");
-        Type type = new TypeToken<List<Float>>() {}.getType();
-        Gson gson = new Gson();
-        speedList = gson.fromJson(savedText, type);
-        if (speedList == null){
-            speedList =  new ArrayList<>();
-        }
-        savedText = sPref.getString(PREFERENCE_SPEED_LIST_TIME,"null");
-        type = new TypeToken<List<Long>>() {}.getType();
-        speedListTime = gson.fromJson(savedText, type);
-        if (speedListTime == null){
-            speedListTime =  new ArrayList<>();
-        }
-    }
     @SuppressLint("MissingPermission")
     private void gpsTrecing() {
         if(locationManager != null){
@@ -285,7 +264,17 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         for (float f:speedList){
             sumSpeed+=f;
         }
-        return (int)(sumSpeed/speedList.size());
+        if (countSpeedFromDB>0){
+            if(speedList.size()>50){
+                return (int)(sumSpeed/speedList.size());
+            }else{
+
+                return (int)((sumSpeed+sumSpeedFromDB)/(speedList.size()+countSpeedFromDB));
+            }
+        }else{
+            return (int)(sumSpeed/speedList.size());
+        }
+
     }
 
     @Override
