@@ -38,7 +38,7 @@ import com.google.gson.reflect.TypeToken;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements ICustomGPSListener {
+public class MainActivity extends AppCompatActivity {
     public static final int GPS_REQuEST = 125;
     private static final String PREFERENCE_NAME_FILE = "preference_user";
     private static final String PREFERENCE_SPEED_LIST = "preference_speed_list";
@@ -130,6 +130,8 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
         allPath =0;
     }
     private void clearAvgSpeed(){
+        sumSpeedFromDB = 0;
+        countSpeedFromDB = 0;
         speedList.clear();
         speedListTime.clear();
     }
@@ -268,7 +270,6 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
             if(speedList.size()>50){
                 return (int)(sumSpeed/speedList.size());
             }else{
-
                 return (int)((sumSpeed+sumSpeedFromDB)/(speedList.size()+countSpeedFromDB));
             }
         }else{
@@ -303,28 +304,4 @@ public class MainActivity extends AppCompatActivity implements ICustomGPSListene
 
 
 
-    @Override
-    public void onLocationChanged(Location location) {
-        if(location != null)
-        {
-            CustomLocation myLocation = new CustomLocation(location);
-            this.updateSpeed(myLocation);
-        }
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
-
-    @Override
-    public void onGpsStatusChanged(int event) {
-    }
 }
